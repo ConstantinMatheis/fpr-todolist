@@ -25,21 +25,29 @@ type Model =
 type Msg = 
 | UpdateItemForm of string
 | CreateTodo
-| MoveToDone of Item
-| DeleteItem of Item
+| MoveToDone of string
+| DeleteItem of string
 
-let init() : Model =
+let initialModel = 
     { ItemForm = ""
       Todos = []
       Dones = [] }
+
+let testModel = 
+    { ItemForm = ""
+      Todos = [Todo "F# project"; Todo "Talk to god"]
+      Dones = [Done "Sleep"; Done "Procrastinate"] }
+
+let init() : Model =
+    testModel
 
 let update (msg : Msg) (model : Model) =
     match msg with
     | UpdateItemForm content -> 
         { model with ItemForm = content }
     | CreateTodo -> failwith "not implemented"
-    | MoveToDone item -> failwith "not implemented"
-    | DeleteItem item -> failwith "not implemented"
+    | MoveToDone text -> failwith "not implemented"
+    | DeleteItem text -> failwith "not implemented"
 
 // VIEW (rendered with React)
 
@@ -49,33 +57,38 @@ let toCardRow row =
     Tile.tile [ Tile.IsParent; Tile.Size Tile.Is12 ] row
 
 
+let todoReactElement dispatch (text : string) =
+    Tile.tile [ Tile.IsChild; Tile.Size Tile.Is12; Tile.CustomClass "content-card" ]
+        [ Card.card [ ]
+        [ Card.content []
+            [ Content.content [] [ str text ] ]
+          Card.footer []
+            [ Card.Footer.a [ GenericOption.Props [ OnClick (fun _ -> MoveToDone text |> dispatch) ] ]
+                [ str "Done" ] ] ] ]
+
+let doneReactElement dispatch (text : string) =
+    Tile.tile [ Tile.IsChild; Tile.Size Tile.Is12; Tile.CustomClass "content-card" ]
+        [ Card.card [ ]
+        [ Card.content []
+            [ Content.content [] [ str text ] ]
+          Card.footer []
+            [ Card.Footer.a [ GenericOption.Props [ OnClick (fun _ -> DeleteItem text |> dispatch) ] ]
+                [ str "Delete" ] ] ] ]
+
+let oneReactElement dispatch (item : Item) =
+    match item with
+    | Done text -> doneReactElement dispatch text
+    | Todo text -> todoReactElement dispatch text
+
 let toReactElementList dispatch (items : Item list) =
-        [Tile.tile [ Tile.IsChild; Tile.Size Tile.Is12; Tile.CustomClass "content-card" ]
-        [ Card.card [ ]
-            [ Card.header []
-                [ Card.Header.title [] [ str "title" ] ]
-              Card.content []
-                [ Content.content [] [ str "Unfortunately this draft has been rejected 🙁" ] ]
-              Card.footer []
-                [ Card.Footer.a [ GenericOption.Props [ OnClick (fun _ -> ()) ] ]
-                    [ str "Delete" ] ] ] ]
-                    ;
-        Tile.tile [ Tile.IsChild; Tile.Size Tile.Is12; Tile.CustomClass "content-card" ]
-        [ Card.card [ ]
-            [ Card.header []
-                [ Card.Header.title [] [ str "title" ] ]
-              Card.content []
-                [ Content.content [] [ str "Unfortunately this draft has been rejected 🙁" ] ]
-              Card.footer []
-                [ Card.Footer.a [ GenericOption.Props [ OnClick (fun _ -> ()) ] ]
-                    [ str "Delete" ] ] ] ]
-        ]
+    items |> List.map (oneReactElement dispatch)
+
 let doneContainer dispatch (dones : DoneList) =
     Tile.tile [ Tile.IsChild; Tile.Size Tile.Is4; Tile.CustomClass "content-card" ]
         [ Card.card [ ]
             [ 
               Card.header []
-                [ Card.Header.title [] [ str "Dones" ] ]
+                [ Card.Header.title [] [ str "Done" ] ]
               Card.content []
                 [ Content.content [] [ 
                     yield! toReactElementList dispatch dones                   
@@ -83,21 +96,18 @@ let doneContainer dispatch (dones : DoneList) =
             ] 
         ]
 
-
-
 let todoContainer dispatch (todos : TodoList) = 
     Tile.tile [ Tile.IsChild; Tile.Size Tile.Is4; Tile.CustomClass "content-card" ]
         [ Card.card [ ]
             [ 
               Card.header []
-                [ Card.Header.title [] [ str "ToDos" ] ]
+                [ Card.Header.title [] [ str "ToDo" ] ]
               Card.content []
                 [ Content.content [] [ 
                     yield! toReactElementList dispatch todos                   
                  ] ]   
             ] 
         ]
-
 
 
 let toReactElements dispatch (todos : TodoList) (dones : DoneList)=
