@@ -48,30 +48,20 @@ let moveToDone (text: string) (model: Model)   =
     let newToDoList: TodoList =
         model.Todos
         |> List.filter( fun x -> x.ToString() <> "Todo "+ text )
-    
-
-    let newDoneModel = 
-        {   ItemForm = ""
-            Todos = newToDoList
-            Dones =  Done text ::model.Dones  }
-    newDoneModel
+    { ItemForm = ""
+      Todos = newToDoList
+      Dones =  Done text :: model.Dones }
 
 let deleteItem (text:string) (model: Model) =
     let newTodoList : TodoList =
         model.Todos
         |> List.filter( fun x -> x.ToString() <> "Todo "+ text )
-    
-
     let newDoneList: DoneList =
         model.Dones
-        |>List.filter( fun x -> x.ToString() <> "Done "+ text )
-    
-
-    let newDoneModel = 
-            {   ItemForm = ""
-                Todos = newTodoList
-                Dones =  newDoneList  }
-    newDoneModel
+        |> List.filter( fun x -> x.ToString() <> "Done "+ text )
+    { ItemForm = ""
+      Todos = newTodoList
+      Dones =  newDoneList }
 
 let update (msg : Msg) (model : Model) =
     match msg with
@@ -81,7 +71,7 @@ let update (msg : Msg) (model : Model) =
         let newTodo = Todo model.ItemForm
         { model with
             ItemForm = ""
-            Todos = newTodo::model.Todos}
+            Todos = newTodo :: model.Todos}
     | MoveToDone text -> 
         let newModel =
             model
