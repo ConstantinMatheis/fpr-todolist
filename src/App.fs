@@ -4,6 +4,9 @@ open Elmish
 open Elmish.React
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
+open Fable.Helpers.React.ReactiveComponents
+open System.Collections.Generic
+open System.Collections.Generic
 
 module Browser = Fable.Import.Browser
 
@@ -41,13 +44,58 @@ let testModel =
 let init() : Model =
     testModel
 
+let moveToDone (text: string) (model: Model)   =
+    let newToDoList: TodoList =
+        model.Todos
+        |> List.filter( fun x -> x.ToString() <> "Todo "+ text )
+    newToDoList |> ignore
+
+    let newDoneModel = 
+        {   ItemForm = ""
+            Todos = newToDoList
+            Dones =  Done text ::model.Dones  }
+    newDoneModel
+
+let deleteItem (text:string) (model: Model) =
+    let newTodoList : TodoList =
+        model.Todos
+        |> List.filter( fun x -> x.ToString() <> "Todo "+ text )
+    newTodoList |> ignore
+
+    let newDoneList: DoneList =
+        model.Dones
+        |>List.filter( fun x -> x.ToString() <> "Done "+ text )
+    newDoneList |> ignore
+
+    let newDoneModel = 
+            {   ItemForm = ""
+                Todos = newTodoList
+                Dones =  newDoneList  }
+    newDoneModel
+
 let update (msg : Msg) (model : Model) =
     match msg with
     | UpdateItemForm content -> 
         { model with ItemForm = content }
-    | CreateTodo -> failwith "not implemented"
-    | MoveToDone text -> failwith "not implemented"
-    | DeleteItem text -> failwith "not implemented"
+    | CreateTodo -> 
+        let newTodo = Todo model.ItemForm
+        { model with
+            ItemForm = ""
+            Todos = newTodo::model.Todos}
+    | MoveToDone text -> 
+        let newModel =
+            model
+            |> (moveToDone text)
+        {newModel with 
+            Todos = newModel.Todos
+            Dones = newModel.Dones}       
+    | DeleteItem text ->
+        let newModel =
+            model
+            |> (deleteItem text)
+        {newModel with
+            Todos = newModel.Todos
+            Dones = newModel.Dones}        
 
 // VIEW (rendered with React)
 
@@ -64,7 +112,9 @@ let todoReactElement dispatch (text : string) =
             [ Content.content [] [ str text ] ]
           Card.footer []
             [ Card.Footer.a [ GenericOption.Props [ OnClick (fun _ -> MoveToDone text |> dispatch) ] ]
-                [ str "Done" ] ] ] ]
+                [ str "Done" ]
+              Card.Footer.a [ GenericOption.Props [ OnClick (fun _ -> DeleteItem text |> dispatch) ] ]
+                [ str "Delete" ] ] ] ]
 
 let doneReactElement dispatch (text : string) =
     Tile.tile [ Tile.IsChild; Tile.Size Tile.Is12; Tile.CustomClass "content-card" ]
