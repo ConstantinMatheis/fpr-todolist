@@ -48,7 +48,7 @@ let moveToDone (text: string) (model: Model)   =
     let newToDoList: TodoList =
         model.Todos
         |> List.filter( fun x -> x.ToString() <> "Todo "+ text )
-    newToDoList |> ignore
+    
 
     let newDoneModel = 
         {   ItemForm = ""
@@ -60,12 +60,12 @@ let deleteItem (text:string) (model: Model) =
     let newTodoList : TodoList =
         model.Todos
         |> List.filter( fun x -> x.ToString() <> "Todo "+ text )
-    newTodoList |> ignore
+    
 
     let newDoneList: DoneList =
         model.Dones
         |>List.filter( fun x -> x.ToString() <> "Done "+ text )
-    newDoneList |> ignore
+    
 
     let newDoneModel = 
             {   ItemForm = ""
